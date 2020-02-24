@@ -40,27 +40,38 @@ public class FindMutualFriends {
 			System.exit(1);
 		}
 
-		// Below configurations to check the logs at web console.
+		// To check the logs at web console, map status etc.
+		
 		Configuration conf = new Configuration();		
 		conf.set("fs.defaultFS", "hdfs://127.0.0.1:9000");
         conf.set("mapreduce.jobtracker.address", "localhost:54311");
         conf.set("mapreduce.framework.name", "yarn");
         conf.set("yarn.resourcemanager.address", "localhost:8032");
         
+        // To increase/decrease the no of mappers, depending on the input split size.
+        
+        // conf.set("mapred.min.split.size", "1000000");
+        // conf.set("mapred.max.split.size", "1000000");
+        
         // Hadoop Job's logistics...
-		Job job = new Job(conf, "Mutual Friends");
+        
+		Job job = Job.getInstance(conf, "Mutual Friends");
 		job.setJarByClass(FindMutualFriends.class);
 		job.setMapperClass(MapperClass.class);
 		job.setReducerClass(ReducerClass.class);
 		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(Text.class);		
+		job.setOutputValueClass(Text.class);
 		
-		// Can be used to check the output of the mapper. Output will be 
+		// To increase the no of reducers.
+		
+		// job.setNumReduceTasks(4);
+		
+		// To check the output of the mapper. Output of mapper will be 
 		// stored in the location set by setOutputPath below.
 		
 		// job.setNumReduceTasks(0);
 
-		// Setting input output paths...
+		// Set input output paths...
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
 		
@@ -106,7 +117,7 @@ public class FindMutualFriends {
 		 * @param myId
 		 *            ID of the current user.
 		 * @param friendId
-		 *            Id of the current user's friend.
+		 *            ID of the current user's friend.
 		 * @return True if as required in question else false.
 		 */
 		private boolean isRequiredPair(int myID, int friendID) {
