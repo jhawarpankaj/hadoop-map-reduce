@@ -1,4 +1,4 @@
-package edu.utd.hadoop.q1;
+package edu.utd.bigdata.hadoop;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -24,11 +24,11 @@ public class Top10Pairs {
 	public static void main(String[] args)
 			throws IOException, ClassNotFoundException, InterruptedException {
 
-		if (args.length != 3) {
-			System.err.println(
-					"Improper arguments. Usage: <input_file> <temp_output> <output_path>");
+		if(args.length != 3) {
+			System.err
+					.println("Improper arguments. Usage: <input_file> <temp_output> <output_path>");
 			System.exit(1);
-		}		
+		}
 
 		// To check the logs at web console, map status etc.
 
@@ -47,11 +47,11 @@ public class Top10Pairs {
 		job1.setMapOutputValueClass(Text.class);
 		job1.setOutputKeyClass(Text.class);
 		job1.setOutputValueClass(Text.class);
-		
+
 		FileInputFormat.addInputPath(job1, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job1, new Path(args[1]));
-		if (!job1.waitForCompletion(true)) System.exit(1);
-		
+		if(!job1.waitForCompletion(true)) System.exit(1);
+
 		// Second job...
 		Configuration conf2 = new Configuration();
 		Job job2 = Job.getInstance(conf2, "Top10");
@@ -62,7 +62,7 @@ public class Top10Pairs {
 
 		job2.setMapOutputKeyClass(NullWritable.class);
 		job2.setMapOutputValueClass(Text.class);
-		
+
 		job2.setOutputKeyClass(Text.class);
 		job2.setOutputValueClass(Text.class);
 		job2.setInputFormatClass(KeyValueTextInputFormat.class);
@@ -72,15 +72,13 @@ public class Top10Pairs {
 		System.exit(job2.waitForCompletion(true) ? 0 : 1);
 	}
 
-	public static class MapperClass1
-			extends
-				Mapper<LongWritable, Text, Text, Text> {
+	public static class MapperClass1 extends Mapper<LongWritable, Text, Text, Text> {
 
 		/*
 		 * Business Logic for mapper side.
 		 * 
-		 * @param key The input param key which represents the offset which is
-		 * not used in this case.
+		 * @param key The input param key which represents the offset which is not used
+		 * in this case.
 		 * 
 		 * @param values Represents each line of the input file.
 		 * 
@@ -89,29 +87,27 @@ public class Top10Pairs {
 		public void map(LongWritable key, Text values, Context context)
 				throws IOException, InterruptedException {
 			String[] connections = String.valueOf(values).split("\t");
-			if (connections.length != 2) return;
+			if(connections.length != 2) return;
 			int myID = Integer.parseInt(connections[0]);
 			String[] friendsList = connections[1].split(",");
 			Text resultTuple = new Text();
 			int friendID;
-			for (String friend : friendsList) {
+			for(String friend : friendsList) {
 				friendID = Integer.parseInt(friend);
-				if (myID < friendID) resultTuple.set(myID + "," + friendID);
+				if(myID < friendID) resultTuple.set(myID + "," + friendID);
 				else resultTuple.set(friendID + "," + myID);
 				context.write(resultTuple, new Text(connections[1]));
 			}
 		}
 	}
-	
+
 	/**
 	 * Reducer class for reduce job. Provides definition of reduce job.
 	 * 
 	 * @author pankaj
 	 *
 	 */
-	public static class ReducerClass1
-			extends
-				Reducer<Text, Text, Text, Text> {
+	public static class ReducerClass1 extends Reducer<Text, Text, Text, Text> {
 
 		/*
 		 * Business Logic for reduce side.
@@ -122,27 +118,28 @@ public class Top10Pairs {
 		 * 
 		 * @param context Reducer context.
 		 */
-		public void reduce(Text key, Iterable<Text> listOfValues,
-				Context context) throws IOException, InterruptedException {
+		public void reduce(Text key, Iterable<Text> listOfValues, Context context)
+				throws IOException, InterruptedException {
 
 			int count = 0;
 			Set<String> set = new HashSet<String>();
 
-			for (Text value : listOfValues) {
+			for(Text value : listOfValues) {
 				String[] split = String.valueOf(value).split(",");
-				for (String aFriend : split) {					
-					if (set.contains(aFriend)) count++;
+				for(String aFriend : split) {
+					if(set.contains(aFriend)) count++;
 					else set.add(aFriend);
-				}					
+				}
 			}
 
-			if (count == 0) return;
-			context.write(new Text(String.valueOf(count)), key);			
+			if(count == 0) return;
+			context.write(new Text(String.valueOf(count)), key);
 		}
 	}
-	
+
 	/**
 	 * For Mapper class Priority queue to maintain top 10 records.
+	 * 
 	 * @author pankaj
 	 *
 	 */
@@ -154,28 +151,26 @@ public class Top10Pairs {
 			return a - b;
 		}
 	}
-	
+
 	/**
 	 * Mapper class for second job. Maintains local top 10 records.
+	 * 
 	 * @author pankaj
 	 *
 	 */
-	public static class MapperClass2
-			extends
-				Mapper<Text, Text, NullWritable, Text> {		
-		
-		private static PriorityQueue<String> PQ = new PriorityQueue<String>(
-				new MyComparator());
+	public static class MapperClass2 extends Mapper<Text, Text, NullWritable, Text> {
+
+		private static PriorityQueue<String> PQ = new PriorityQueue<String>(new MyComparator());
 		int K;
-		
-		/* 
+
+		/*
 		 * Initializing confing variables.
 		 */
 		protected void setup(Context context) {
-	        Configuration conf = context.getConfiguration();
-	        K = conf.getInt("K", 10);
-	    }
-		
+			Configuration conf = context.getConfiguration();
+			K = conf.getInt("K", 10);
+		}
+
 		/*
 		 * Business Logic for mapper side.
 		 * 
@@ -187,46 +182,42 @@ public class Top10Pairs {
 		 */
 		public void map(Text key, Text values, Context context)
 				throws IOException, InterruptedException {
-			
+
 			String merge = key.toString() + "#" + values.toString();
 			PQ.add(merge);
 			if(PQ.size() > K) PQ.remove();
 		}
-		
-		/* 
-		 * Executed once at the end of each mapper execution to flush
-		 * top K records.
+
+		/*
+		 * Executed once at the end of each mapper execution to flush top K records.
 		 */
 		@Override
-		protected void cleanup(Context context)
-				throws IOException, InterruptedException {
-			
+		protected void cleanup(Context context) throws IOException, InterruptedException {
+
 			while(!PQ.isEmpty()) {
 				context.write(NullWritable.get(), new Text(PQ.poll()));
 			}
 
 		}
 	}
-	
+
 	/**
 	 * Get the global top K records.
 	 * 
 	 * @author pankaj
 	 *
 	 */
-	public static class ReducerClass2
-			extends
-				Reducer<NullWritable, Text, Text, Text> {
+	public static class ReducerClass2 extends Reducer<NullWritable, Text, Text, Text> {
 		int K;
-		
-		/* 
+
+		/*
 		 * Initializing confing variables.
 		 */
 		protected void setup(Context context) {
-	        Configuration conf = context.getConfiguration();
-	        K = conf.getInt("K", 10);
-	    }
-				
+			Configuration conf = context.getConfiguration();
+			K = conf.getInt("K", 10);
+		}
+
 		/*
 		 * Business Logic for reduce side.
 		 * 
@@ -236,24 +227,23 @@ public class Top10Pairs {
 		 * 
 		 * @param context Reducer context.
 		 */
-		public void reduce(NullWritable key, Iterable<Text> listOfValues,
-				Context context) throws IOException, InterruptedException {
-			
+		public void reduce(NullWritable key, Iterable<Text> listOfValues, Context context)
+				throws IOException, InterruptedException {
+
 			PriorityQueue<String> PQ = new PriorityQueue<String>(new MyComparator());
-			
+
 			for(Text value : listOfValues) {
 				PQ.add(value.toString());
 				if(PQ.size() > K) PQ.remove();
 			}
-			
+
 			String[] array = new String[PQ.size()];
 			for(int i = 0; i < array.length; i++) {
 				array[i] = PQ.remove();
 			}
 			Arrays.sort(array, PQ.comparator());
-			for (int i = array.length - 1; i >= 0; i--) {
-				context.write(new Text(array[i].split("#")[1]),
-						new Text(array[i].split("#")[0]));
+			for(int i = array.length - 1; i >= 0; i--) {
+				context.write(new Text(array[i].split("#")[1]), new Text(array[i].split("#")[0]));
 			}
 		}
 	}

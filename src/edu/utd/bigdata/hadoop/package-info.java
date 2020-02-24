@@ -5,4 +5,4 @@
  * @author pankaj
  *
  */
-package edu.utd.hadoop.q1;
+package edu.utd.bigdata.hadoop;

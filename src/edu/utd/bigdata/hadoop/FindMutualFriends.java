@@ -1,4 +1,4 @@
-package edu.utd.hadoop.q1;
+package edu.utd.bigdata.hadoop;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -25,111 +25,102 @@ public class FindMutualFriends {
 	/**
 	 * Main method for entry point.
 	 * 
-	 * @param args
-	 *            Expecting 2 arguments: Input file location and Output path.
-	 * @throws IOException
-	 *             Occurred during dealing with files read/write.
-	 * @throws InterruptedException 
-	 * @throws ClassNotFoundException 
+	 * @param args Expecting 2 arguments: Input file location and Output path.
+	 * @throws IOException            Occurred during dealing with files read/write.
+	 * @throws InterruptedException
+	 * @throws ClassNotFoundException
 	 */
-	public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+	public static void main(String[] args)
+			throws IOException, ClassNotFoundException, InterruptedException {
 
-		if (args.length != 2) {
-			System.err.println(
-					"Improper arguments. Usage: <input_file> <output_path>");
+		if(args.length != 2) {
+			System.err.println("Improper arguments. Usage: <input_file> <output_path>");
 			System.exit(1);
 		}
 
 		// To check the logs at web console, map status etc.
-		
-		Configuration conf = new Configuration();		
+
+		Configuration conf = new Configuration();
 		conf.set("fs.defaultFS", "hdfs://127.0.0.1:9000");
-        conf.set("mapreduce.jobtracker.address", "localhost:54311");
-        conf.set("mapreduce.framework.name", "yarn");
-        conf.set("yarn.resourcemanager.address", "localhost:8032");
-        
-        // To increase/decrease the no of mappers, depending on the input split size.
-        
-        // conf.set("mapred.min.split.size", "1000000");
-        // conf.set("mapred.max.split.size", "1000000");
-        
-        // Hadoop Job's logistics...
-        
+		conf.set("mapreduce.jobtracker.address", "localhost:54311");
+		conf.set("mapreduce.framework.name", "yarn");
+		conf.set("yarn.resourcemanager.address", "localhost:8032");
+
+		// To increase/decrease the no of mappers, depending on the input split size.
+
+		// conf.set("mapred.min.split.size", "1000000");
+		// conf.set("mapred.max.split.size", "1000000");
+
+		// Hadoop Job's logistics...
+
 		Job job = Job.getInstance(conf, "Mutual Friends");
 		job.setJarByClass(FindMutualFriends.class);
 		job.setMapperClass(MapperClass.class);
 		job.setReducerClass(ReducerClass.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
-		
+
 		// To increase the no of reducers.
-		
+
 		// job.setNumReduceTasks(4);
-		
-		// To check the output of the mapper. Output of mapper will be 
+
+		// To check the output of the mapper. Output of mapper will be
 		// stored in the location set by setOutputPath below.
-		
+
 		// job.setNumReduceTasks(0);
 
 		// Set input output paths...
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
-		
+
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
 
 	/**
 	 * Mapper class for map job. Provides definition of map job.
 	 */
-	public static class MapperClass
-			extends
-				Mapper<LongWritable, Text, Text, Text> {
+	public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
 
 		/*
 		 * Business Logic for mapper side.
 		 * 
-		 * @param key The input param key which represents the offset 
-		 * which is not used in this case.
+		 * @param key The input param key which represents the offset which is not used
+		 * in this case.
 		 * 
 		 * @param values Represents each line of the input file.
 		 * 
 		 * @param context Mapper context.
 		 */
-		public void map(LongWritable key, Text values, Context context) throws IOException, InterruptedException {
+		public void map(LongWritable key, Text values, Context context)
+				throws IOException, InterruptedException {
 			String[] connections = String.valueOf(values).split("\t");
-			if (connections.length != 2)
-				return;
+			if(connections.length != 2) return;
 			int myID = Integer.parseInt(connections[0]);
 			String[] friendsList = connections[1].split(",");
 			Text resultTuple = new Text();
 			int friendID;
-			for (String friend : friendsList) {
+			for(String friend : friendsList) {
 				friendID = Integer.parseInt(friend);
-				if (isRequiredPair(myID, friendID)) {
-					if (myID < friendID) resultTuple.set(myID + "," + friendID);
+				if(isRequiredPair(myID, friendID)) {
+					if(myID < friendID) resultTuple.set(myID + "," + friendID);
 					else resultTuple.set(friendID + "," + myID);
 					context.write(resultTuple, new Text(connections[1]));
 				}
-			}			
+			}
 		}
 
 		/**
-		 * @param myId
-		 *            ID of the current user.
-		 * @param friendId
-		 *            ID of the current user's friend.
+		 * @param myId     ID of the current user.
+		 * @param friendId ID of the current user's friend.
 		 * @return True if as required in question else false.
 		 */
 		private boolean isRequiredPair(int myID, int friendID) {
-			if ((myID == 0 && friendID == 1) || (myID == 1 && friendID == 0)
-					|| (myID == 20 && friendID == 28193)
-					|| (myID == 28193 && friendID == 20)
-					|| (myID == 1 && friendID == 29826)
-					|| (myID == 29826 && friendID == 1)
-					|| (myID == 6222 && friendID == 19272)
-					|| (myID == 19272 && friendID == 6222)
-					|| (myID == 28041 && friendID == 28056)
-					|| (myID == 28056 && friendID == 28041)) return true;
+			if((myID == 0 && friendID == 1) || (myID == 1 && friendID == 0)
+					|| (myID == 20 && friendID == 28193) || (myID == 28193 && friendID == 20)
+					|| (myID == 1 && friendID == 29826) || (myID == 29826 && friendID == 1)
+					|| (myID == 6222 && friendID == 19272) || (myID == 19272 && friendID == 6222)
+					|| (myID == 28041 && friendID == 28056) || (myID == 28056 && friendID == 28041))
+				return true;
 			return false;
 		}
 	}
@@ -151,17 +142,17 @@ public class FindMutualFriends {
 		 * 
 		 * @param context Reducer context.
 		 */
-		public void reduce(Text key, Iterable<Text> listOfValues,
-				Context context) throws IOException, InterruptedException {
+		public void reduce(Text key, Iterable<Text> listOfValues, Context context)
+				throws IOException, InterruptedException {
 
 			StringBuilder mutualFriends = new StringBuilder();
 			Text result = new Text();
 			Set<String> set = new HashSet<String>();
 
-			for (Text value : listOfValues) {
+			for(Text value : listOfValues) {
 				String[] split = String.valueOf(value).split(",");
-				for (String aFriend : split) {
-					if (!set.contains(aFriend)) {
+				for(String aFriend : split) {
+					if(!set.contains(aFriend)) {
 						set.add(aFriend);
 						continue;
 					}
@@ -169,11 +160,11 @@ public class FindMutualFriends {
 				}
 			}
 
-			if (String.valueOf(mutualFriends).isEmpty()) return;
+			if(String.valueOf(mutualFriends).isEmpty()) return;
 
 			mutualFriends.deleteCharAt(mutualFriends.length() - 1);
 			result.set(new Text(String.valueOf(mutualFriends)));
-			context.write(key, result);			
+			context.write(key, result);
 		}
 	}
 
