@@ -1,0 +1,24 @@
+Question1
+
+	Command to execute:
+
+	hadoop jar /home/pankaj/Desktop/UTD-Semesters/20Spring/BigData/Assignment/A1/code/MutualFriends.jar edu/utd/bigdata/hadoop/FindMutualFriends /assignments/A1/input/soc-LiveJournal1Adj.txt /assignments/A1/output/question1/
+
+Question2
+
+	Command to execute:
+
+	hadoop jar /home/pankaj/Desktop/UTD-Semesters/20Spring/BigData/Assignment/A1/code/MutualFriends.jar edu/utd/bigdata/hadoop/Top10Pairs /assignments/A1/input/soc-LiveJournal1Adj.txt /assignments/A1/output/temp40/ /assignments/A1/output/question2/
+
+Question3
+
+	Command to execute:
+
+	hadoop jar /home/pankaj/Desktop/UTD-Semesters/20Spring/BigData/Assignment/A1/code/MutualFriends.jar edu/utd/bigdata/hadoop/GetMutualFriendsDetails /assignments/A1/input/soc-LiveJournal1Adj.txt /assignments/A1/input/userdata.txt /assignments/A1/output/question3/ 28041 28056
+
+Question4
+
+	Command to execute: 
+
+	hadoop jar /home/pankaj/Desktop/UTD-Semesters/20Spring/BigData/Assignment/A1/code/MutualFriends.jar edu/utd/bigdata/hadoop/Top10MaxAgeUsers /assignments/A1/input/soc-LiveJournal1Adj.txt /assignments/A1/input/userdata.txt /assignments/A1/output/temp34/ /assignments/A1/output/question4/
+
