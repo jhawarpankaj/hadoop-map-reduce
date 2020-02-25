@@ -28,31 +28,31 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 /**
- * @author pankaj
- * Get top 10 max age of friends.
+ * @author pankaj Get top 10 max age of friends.
  */
 public class Top10MaxAgeUsers {
-	
+
 	/**
 	 * @param args <connections_file> <user_data> <temp_output_path> <output_path>
-	 * @throws IOException standard hadoop job exceptions.
+	 * @throws IOException            standard hadoop job exceptions.
 	 * @throws ClassNotFoundException standard hadoop job exceptions.
-	 * @throws InterruptedException standard hadoop job exceptions.
+	 * @throws InterruptedException   standard hadoop job exceptions.
 	 */
-	public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
-		
+	public static void main(String[] args)
+			throws IOException, ClassNotFoundException, InterruptedException {
+
 		if(args.length != 4) {
 			System.err.println("Improper arguments. Usage: <connections_file>"
 					+ "<user_data> <temp_output_path> <output_path>");
 			System.exit(1);
 		}
-		
+
 		Configuration conf = new Configuration();
 		conf.set("fs.defaultFS", "hdfs://127.0.0.1:9000");
 		conf.set("mapreduce.jobtracker.address", "localhost:54311");
 		conf.set("mapreduce.framework.name", "yarn");
 		conf.set("yarn.resourcemanager.address", "localhost:8032");
-		
+
 		// Job1... (reduce side join implemented here.)
 		Job job1 = Job.getInstance(conf, "ReduceJoin1");
 		job1.setJarByClass(Top10MaxAgeUsers.class);
@@ -66,36 +66,36 @@ public class Top10MaxAgeUsers {
 		job1.addCacheFile(new Path(args[1]).toUri());
 		FileOutputFormat.setOutputPath(job1, new Path(args[2]));
 		if(!job1.waitForCompletion(true)) System.exit(1);
-		
+
 		// Job2... (extracting global top 10)
 		Job job2 = Job.getInstance(new Configuration(), "ReduceJoin2");
 		job2.setJarByClass(Top10MaxAgeUsers.class);
-		FileInputFormat.addInputPath(job2, new Path(args[2]));		
+		FileInputFormat.addInputPath(job2, new Path(args[2]));
 		job2.setMapOutputKeyClass(NullWritable.class);
-        job2.setMapOutputValueClass(Text.class);
-        job2.setMapperClass(MapperClass3.class);        
-        job2.setReducerClass(ReducerClass2.class);
-        job2.setOutputKeyClass(Text.class);
-        job2.setOutputValueClass(NullWritable.class);
-        FileOutputFormat.setOutputPath(job2, new Path(args[3]));
-        if(!job2.waitForCompletion(true)) System.exit(1);
-		
+		job2.setMapOutputValueClass(Text.class);
+		job2.setMapperClass(MapperClass3.class);
+		job2.setReducerClass(ReducerClass2.class);
+		job2.setOutputKeyClass(Text.class);
+		job2.setOutputValueClass(NullWritable.class);
+		FileOutputFormat.setOutputPath(job2, new Path(args[3]));
+		if(!job2.waitForCompletion(true)) System.exit(1);
+
 	}
-	
+
 	/**
-	 * @author pankaj
-	 * Load connection dataset with the join key(userid) as output key.
+	 * @author pankaj Load connection dataset with the join key(userid) as output
+	 *         key.
 	 */
 	private static class MapperClass1 extends Mapper<LongWritable, Text, Text, Text> {
-		
+
 		private static final String fileTag = "MF~";
-		
-		/* 
+
+		/*
 		 * Load connection dataset with fileTag MF~.
 		 */
 		public void map(LongWritable offset, Text values, Context context)
 				throws IOException, InterruptedException {
-			
+
 			String[] connections = String.valueOf(values).split("\t");
 			if(connections.length != 2) return;
 			context.write(new Text(connections[0]), new Text(fileTag + connections[1]));
@@ -103,14 +103,13 @@ public class Top10MaxAgeUsers {
 	}
 
 	/**
-	 * @author pankaj
-	 * Load userdata dataset with the join key(userid) as output key.
+	 * @author pankaj Load userdata dataset with the join key(userid) as output key.
 	 */
 	private static class MapperClass2 extends Mapper<LongWritable, Text, Text, Text> {
-		
+
 		private static final String fileTag = "UD~";
 
-		/* 
+		/*
 		 * Load userdata dataset with fileTag UD~.
 		 */
 		public void map(LongWritable offset, Text values, Context context)
@@ -122,19 +121,20 @@ public class Top10MaxAgeUsers {
 			context.write(new Text(data[0]), new Text(fileTag + address));
 		}
 	}
-	
+
 	/**
-	 * @author pankaj
-	 * Reduce side join to join the connections and userdata on key: userid.
+	 * @author pankaj Reduce side join to join the connections and userdata on key:
+	 *         userid.
 	 */
 	private static class ReducerClass1 extends Reducer<Text, Text, Text, Text> {
-		
+
 		private static Map<String, Integer> map = new HashMap<String, Integer>();
 		private static final String fileTag1 = "MF";
 		private static final String fileTag2 = "UD";
-		
+
 		/**
 		 * Calculate age given DOB.
+		 * 
 		 * @param stringDate Input date.
 		 * @return Age.
 		 */
@@ -159,15 +159,15 @@ public class Top10MaxAgeUsers {
 			int curMonth = today.get(Calendar.MONTH);
 			int dobMonth = dob.get(Calendar.MONTH);
 			if(dobMonth > curMonth) age--;
-			else if(dobMonth == curMonth) { 
+			else if(dobMonth == curMonth) {
 				int curDay = today.get(Calendar.DAY_OF_MONTH);
 				int dobDay = dob.get(Calendar.DAY_OF_MONTH);
 				if(dobDay > curDay) age--;
 			}
 			return age;
 		}
-		
-		/* 
+
+		/*
 		 * Load userid and DOB in memory.
 		 */
 		protected void setup(Context context) throws IOException, InterruptedException {
@@ -182,20 +182,18 @@ public class Top10MaxAgeUsers {
 			String line = reader.readLine();
 			while(line != null) {
 				String[] cols = line.split(",");
-				if(cols.length == 10) {
-					map.put(cols[0].trim(), calculateAge(cols[9]));
-				}
+				if(cols.length == 10) { map.put(cols[0].trim(), calculateAge(cols[9])); }
 				line = reader.readLine();
 			}
 			reader.close();
 		}
-		
-		/* 
+
+		/*
 		 * Calculate max age among all friends and store address.
 		 */
 		public void reduce(Text key, Iterable<Text> listOfValues, Context context)
 				throws IOException, InterruptedException {
-			
+
 			String conn = "", add = "";
 			for(Text value : listOfValues) {
 				String[] split = String.valueOf(value).split("~");
@@ -203,21 +201,20 @@ public class Top10MaxAgeUsers {
 				else if(split[0].equals(fileTag2)) add += split[1];
 			}
 			if(conn.isEmpty() || add.isEmpty()) return;
-			
+
 			int maxAge = Integer.MIN_VALUE;
 			for(String friend : conn.split(",")) {
 				if(!map.containsKey(friend)) continue;
 				int age = map.get(friend);
 				maxAge = Math.max(maxAge, age);
 			}
-			
+
 			context.write(key, new Text(maxAge + "#" + add));
-		} 
+		}
 	}
-	
+
 	/**
-	 * @author pankaj
-	 * Bigger age pushed to end.
+	 * @author pankaj Bigger age pushed to end.
 	 */
 	public static class MyComparator implements Comparator<String> {
 		@Override
@@ -227,10 +224,9 @@ public class Top10MaxAgeUsers {
 			return a - b;
 		}
 	}
-	
+
 	/**
-	 * @author pankaj
-	 * Eject local top 10 highest age.
+	 * @author pankaj Eject local top 10 highest age.
 	 */
 	private static class MapperClass3 extends Mapper<LongWritable, Text, NullWritable, Text> {
 
@@ -246,7 +242,7 @@ public class Top10MaxAgeUsers {
 			if(PQ.size() > 10) PQ.remove();
 		}
 
-		/* 
+		/*
 		 * Output only top 10.
 		 */
 		@Override
@@ -257,13 +253,12 @@ public class Top10MaxAgeUsers {
 			}
 		}
 	}
-	
+
 	/**
-	 * @author pankaj
-	 * Eject global top 10 max age.
+	 * @author pankaj Eject global top 10 max age.
 	 */
 	public static class ReducerClass2 extends Reducer<NullWritable, Text, Text, NullWritable> {
-		
+
 		public void reduce(NullWritable key, Iterable<Text> listOfValues, Context context)
 				throws IOException, InterruptedException {
 

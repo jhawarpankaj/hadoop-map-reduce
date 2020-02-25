@@ -20,8 +20,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 /**
- * @author pankaj
- * Get name and data of birth for the mutual friends.
+ * @author pankaj Get name and data of birth for the mutual friends.
  */
 public class GetMutualFriendsDetails {
 
@@ -53,7 +52,8 @@ public class GetMutualFriendsDetails {
 		job.setReducerClass(ReducerClass.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
-		job.addCacheFile(new Path(args[1]).toUri()); // cache file for join (present on local file system).
+		job.addCacheFile(new Path(args[1]).toUri()); // cache file for join (present on local file
+														// system).
 
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[2]));
@@ -62,8 +62,8 @@ public class GetMutualFriendsDetails {
 	}
 
 	/**
-	 * @author pankaj 
-	 * Get details of the users' connection's by doing a map side join.
+	 * @author pankaj Get details of the users' connection's by doing a map side
+	 *         join.
 	 */
 	private static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
 
@@ -132,12 +132,11 @@ public class GetMutualFriendsDetails {
 	}
 
 	/**
-	 * @author pankaj
-	 * Get required details of the mutual friends of the given users.
+	 * @author pankaj Get required details of the mutual friends of the given users.
 	 */
 	private static class ReducerClass extends Reducer<Text, Text, Text, Text> {
 
-		/* 
+		/*
 		 * Business logic to extract name and DOB of the mutual friends.
 		 */
 		public void reduce(Text key, Iterable<Text> listOfValues, Context context)
