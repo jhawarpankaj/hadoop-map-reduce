@@ -26,9 +26,9 @@ public class FindMutualFriends {
 	 * Main method for entry point.
 	 * 
 	 * @param args Expecting 2 arguments: Input file location and Output path.
-	 * @throws IOException            Occurred during dealing with files read/write.
-	 * @throws InterruptedException
-	 * @throws ClassNotFoundException
+	 * @throws IOException standard hadoop job exceptions.
+	 * @throws InterruptedException standard hadoop job exceptions.
+	 * @throws ClassNotFoundException standard hadoop job exceptions.
 	 */
 	public static void main(String[] args)
 			throws IOException, ClassNotFoundException, InterruptedException {

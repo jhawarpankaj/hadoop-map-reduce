@@ -26,14 +26,14 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 public class GetMutualFriendsDetails {
 
 	/**
-	 * @param args <connections_file><user_data> <output_path> <user_1> <user_2>
+	 * @param args <connections_file> <user_data> <output_path> <user_1> <user_2>
 	 */
 	public static void main(String[] args)
 			throws IOException, ClassNotFoundException, InterruptedException {
 
 		if(args.length != 5) {
 			System.err.println("Insufficient parameters. Usage: <connections_file> "
-					+ "<user_data> <output_path> <user1> <user2>");
+					+ " <user_data> <output_path> <user1> <user2>");
 			System.exit(1);
 		}
 

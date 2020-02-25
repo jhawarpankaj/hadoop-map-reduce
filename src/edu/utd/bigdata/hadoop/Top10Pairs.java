@@ -19,14 +19,24 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
+/**
+ * @author pankaj
+ * Get global top 10 users having maximum mutual friends.
+ */
 public class Top10Pairs {
 
+	/**
+	 * @param args <input_file> <temp_output> <output_path>
+	 * @throws IOException standard hadoop job exceptions.
+	 * @throws ClassNotFoundException standard hadoop job exceptions.
+	 * @throws InterruptedException standard hadoop job exceptions.
+	 */
 	public static void main(String[] args)
 			throws IOException, ClassNotFoundException, InterruptedException {
 
 		if(args.length != 3) {
-			System.err
-					.println("Improper arguments. Usage: <input_file> <temp_output> <output_path>");
+			System.err.println("Improper arguments. "
+					+ "Usage: <input_file> <temp_output> <output_path>");
 			System.exit(1);
 		}
 
